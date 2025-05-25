@@ -1,32 +1,47 @@
 const express = require("express");
-const { expressPort } = require("../config");
-const stats = require("./stats/router");
-const info = require("./info/router");
-const badge_players = require("./api/v1/badge/players/router");
-const badge_status = require("./api/v1/badge/status/router");
-const badge_uptime = require("./api/v1/badge/uptime/router");
-const colors = require("colors");
+const cors = require("cors");
+const path = require("path");
+const config = require(path.join(__dirname, "..", "config"));
+
+const statsRouter = require("./stats/router");
+const infoRouter = require("./info/router");
+
+let badgePlayersRouter, badgeStatusRouter, badgeUptimeRouter;
+try {
+  badgePlayersRouter = require("./api/v1/badge/players/router");
+  badgeStatusRouter = require("./api/v1/badge/status/router");
+  badgeUptimeRouter = require("./api/v1/badge/uptime/router");
+} catch {}
 
 const app = express();
+app.use(cors());
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-app.set("trust proxy", 1);
-app.use(stats);
-app.use(info);
-app.use(badge_players);
-app.use(badge_status);
-app.use(badge_uptime);
+app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
+  res.sendFile(path.join(__dirname, "index.html"));
 });
 
-app.listen(expressPort || 3000, () => {
-  console.log(
-    colors.green(
-      `[WEB-MONITOR] Server is listening at http://localhost:${
-        expressPort || 3000
-      }`
-    )
-  );
+app.use("/stats", statsRouter);
+app.use("/info", infoRouter);
+
+if (badgePlayersRouter) app.use("/api/v1/badge/players", badgePlayersRouter);
+if (badgeStatusRouter) app.use("/api/v1/badge/status", badgeStatusRouter);
+if (badgeUptimeRouter) app.use("/api/v1/badge/uptime", badgeUptimeRouter);
+
+app.get("/api/ping", (req, res) => {
+  res.json({ pong: true, uptime: process.uptime() });
 });
+
+app.use((req, res) => {
+  res.status(404).json({ error: "Not found" });
+});
+
+const port = config.expressPort || 6375;
+app.listen(port, "0.0.0.0", () => {
+  console.log(`[WEB] Lavalink Status web server listening on port ${port}`);
+});
+
+module.exports = app;
