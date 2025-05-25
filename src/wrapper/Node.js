@@ -3,41 +3,39 @@ const colors = require("colors");
 
 class Node {
   constructor(options) {
-    this.host = options.host || "localhost";
-    this.port = options.port || 2333;
-    this.password = options.password || "youshallnotpass";
-    this.secure = options.secure || false;
-    this.identifier = options.identifier || this.host;
-    this.nodesMap = null;
-    this.ws = null;
+    this.host = options.host;
+    this.port = options.port;
+    this.password = options.password;
+    this.identifier = options.identifier;
+    this.secure = options.secure;
+    this.reconnectTimeout = options.reconnectTimeout;
+    this.reconnectTries = options.reconnectTries;
+    this.version = options.version || 4;
+    this.reconnectAttempted = 0;
     this.connected = false;
     this.stats = {};
-    this.reconnectTimeout = options.reconnectTimeout || 5000;
-    this.reconnectTries = options.reconnectTries || 3;
-    this.reconnectAttempted = 0;
+    this.ws = null;
   }
 
-  storeNode(nodesMap) {
-    this.nodesMap = nodesMap;
-    this.nodesMap.set(this.identifier, this);
+  storeNode(map) {
+    map.set(this.identifier, this);
   }
 
   connect() {
     const headers = {
       Authorization: this.password,
       "User-Id": Math.floor(Math.random() * 10000),
-      "Client-Name": "Lavalink-Status",
+      "Client-Name": "Lavalink-Status"
     };
 
+    const wsVersion = this.version === 3 ? "v3" : "v4";
     this.ws = new WebSocket(
-      `ws${this.secure ? "s" : ""}://${this.host}:${this.port}/v4/websocket`,
+      `ws${this.secure ? "s" : ""}://${this.host}:${this.port}/${wsVersion}/websocket`,
       { headers }
     );
 
     this.ws.on("open", () => {
-      console.log(
-        colors.green(`[NODE] ${this.identifier} | Lavalink node is connected.`)
-      );
+      console.log(colors.green(`[NODE] ${this.identifier} | Lavalink node is connected.`));
       this.reconnectAttempted = 0;
       this.connected = true;
     });
@@ -50,47 +48,19 @@ class Node {
       if (!payload.op) return;
 
       if (payload.op === "stats") {
-        this.stats = { ...payload };
+        this.stats = this.normalizeStats(payload);
       }
     });
 
     this.ws.on("error", (error) => {
-      console.log(
-        colors.red(
-          `[NODE] ${this.identifier} | WebSocket error for Lavalink node ${this.identifier}`
-        )
-      );
-      console.log(error);
+      console.log(colors.red(`[NODE] ${this.identifier} | WebSocket error: ${error}`));
       this.connected = false;
-      return (this.stats = {
-        players: 0,
-        playingPlayers: 0,
-        uptime: 0,
-        memory: {
-          free: 0,
-          used: 0,
-          allocated: 0,
-          reservable: 0,
-        },
-        cpu: {
-          cores: 0,
-          systemLoad: 0,
-          lavalinkLoad: 0,
-        },
-        frameStats: {
-          sent: 0,
-          nulled: 0,
-          deficit: 0,
-        },
-      });
+      this.stats = this.getDefaultStats();
     });
 
     this.ws.on("close", (code, reason) => {
-      console.log(
-        colors.red(
-          `[NODE] ${this.identifier} | Connection closed with code ${code}.`
-        )
-      );
+      console.log(colors.red(`[NODE] ${this.identifier} | Disconnected (code ${code}).`));
+      this.connected = false;
       this.scheduleReconnect();
     });
   }
@@ -100,35 +70,57 @@ class Node {
       this.ws.close();
       this.ws = null;
       this.connected = false;
-      this.stats;
-      console.log(
-        colors.red(`[NODE] ${this.identifier} | Lavalink node is disconnected.`)
-      );
+      this.stats = {};
+      console.log(colors.red(`[NODE] ${this.identifier} | Disconnected.`));
     }
   }
 
   scheduleReconnect() {
     setTimeout(() => {
-      if (
-        this.reconnectAttempted < this.reconnectTries ||
-        this.reconnectTries === 0
-      ) {
-        console.log(
-          colors.yellow(
-            `[NODE] ${this.identifier} | Lavalink node is reconnecting.`
-          )
-        );
+      if (this.reconnectAttempted < this.reconnectTries || this.reconnectTries === 0) {
+        console.log(colors.yellow(`[NODE] ${this.identifier} | Reconnecting.`));
         this.connect();
         this.reconnectAttempted++;
       } else {
-        console.log(
-          colors.red(
-            `[NODE] ${this.identifier} | Lavalink node reached the limit to reconnect.`
-          )
-        );
+        console.log(colors.red(`[NODE] ${this.identifier} | Reconnect limit reached.`));
         this.disconnect();
       }
     }, this.reconnectTimeout);
+  }
+
+  normalizeStats(payload) {
+    if (this.version === 3) {
+      return {
+        players: payload.players,
+        playingPlayers: payload.playingPlayers,
+        uptime: payload.uptime,
+        memory: payload.memory || {
+          free: payload.memory_free,
+          used: payload.memory_used,
+          allocated: payload.memory_allocated,
+          reservable: payload.memory_reservable
+        },
+        cpu: payload.cpu || {
+          cores: payload.cpu_cores,
+          systemLoad: payload.cpu_systemLoad,
+          lavalinkLoad: payload.cpu_lavalinkLoad
+        },
+        frameStats: payload.frameStats || {}
+      };
+    } else {
+      return payload;
+    }
+  }
+
+  getDefaultStats() {
+    return {
+      players: 0,
+      playingPlayers: 0,
+      uptime: 0,
+      memory: { free: 0, used: 0, allocated: 0, reservable: 0 },
+      cpu: { cores: 0, systemLoad: 0, lavalinkLoad: 0 },
+      frameStats: { sent: 0, nulled: 0, deficit: 0 }
+    };
   }
 }
 
