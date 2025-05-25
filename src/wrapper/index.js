@@ -5,7 +5,6 @@ class LavalinkWrapper {
     this.client = client;
     this.nodes = options.nodes || [];
     this.nodesMap = new Map();
-
     this.client.once("ready", this.connectToLavalink.bind(this));
   }
 
