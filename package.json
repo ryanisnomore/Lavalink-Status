@@ -1,19 +1,15 @@
 {
   "name": "lavalink-status",
-  "version": "1.2.5",
-  "description": "Monitor your lavalink",
+  "version": " 0.0.1",
+  "description": "Monitoring lavalink",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": "git+https://github.com/LewdHuTao/Lavalink-Status.git",
-  "author": "LewdHuTao",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/LewdHuTao/Lavalink-Status/issues"
+  "author": "RY4N",
+  "license": "MIT"
   },
-  "homepage": "https://github.com/LewdHuTao/Lavalink-Status#readme",
   "dependencies": {
     "colors": "^1.4.0",
     "discord.js": "^14.15.3",
