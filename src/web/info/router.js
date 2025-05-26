@@ -1,7 +1,6 @@
 const express = require('express');
 const router = express.Router();
 const Node = require('../../wrapper/Node');
-const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 const nodesConfig = require('../../config').nodes || [];
 if (!global.lavalinkNodesMap) {
@@ -13,44 +12,46 @@ if (!global.lavalinkNodesMap) {
   });
 }
 
-async function fetchNodeInfo(node) {
-  if (!node.host || !node.port || !node.password) return null;
+function formatInfo(node) {
+  const info = node.info || {};
+  let jvm = info.jvm || info.java || null;
+  let buildTime = info.buildTime || info.build_time || null;
+  let git = info.git || {};
+  let lavalinkVersion = info.version || (info.build && info.build.version) || null;
+  let lavaplayer = info.lavaplayer || null;
+  let plugins = Array.isArray(info.plugins) ? info.plugins : [];
+  let sourceManagers = Array.isArray(info.sourceManagers) ? info.sourceManagers : [];
+  let filters = Array.isArray(info.filters) ? info.filters : [];
+  let buildNumber = info.buildNumber || (info.build && info.build.number) || null;
+  let commit = git.commit || (info.commit && info.commit.sha) || null;
+  let branch = git.branch || (info.commit && info.commit.branch) || null;
 
-  const baseUrl = `http${node.secure ? 's' : ''}://${node.host}:${node.port}`;
-  const endpoints = node.version === 3 ? ['/v3/info', '/info'] : ['/v4/info', '/info', '/version'];
-
-  for (const endpoint of endpoints) {
-    try {
-      const res = await fetch(`${baseUrl}${endpoint}`, {
-        headers: { Authorization: node.password },
-        timeout: 2000
-      });
-      if (res.ok) return await res.json();
-    } catch {
-      continue;
-    }
-  }
-  return null;
-}
-
-function formatInfo(node, info) {
   return {
     node: node.identifier,
-    version: info?.version || null,
-    lavaplayer: info?.lavaplayer || null,
-    plugins: Array.isArray(info?.plugins) ? info.plugins : [],
-    sourceManagers: Array.isArray(info?.sourceManagers) ? info.sourceManagers : [],
-    filters: Array.isArray(info?.filters) ? info.filters : []
+    host: node.host,
+    port: node.port,
+    password: node.password,
+    secure: !!node.secure,
+    region: info.region || null,
+    version: lavalinkVersion,
+    lavaplayer,
+    plugins,
+    sourceManagers,
+    filters,
+    jvm,
+    buildTime,
+    buildNumber,
+    git: {
+      commit,
+      branch
+    }
   };
 }
 
 router.get('/', async (req, res) => {
   try {
     const nodes = Array.from(global.lavalinkNodesMap.values());
-    const infos = await Promise.all(nodes.map(async node => {
-      const info = await fetchNodeInfo(node);
-      return formatInfo(node, info);
-    }));
+    const infos = nodes.map(formatInfo);
     res.json(infos);
   } catch {
     res.status(500).json({ error: 'Failed to get node info' });
