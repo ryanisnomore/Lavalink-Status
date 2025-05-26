@@ -41,7 +41,7 @@ app.use((req, res) => {
 
 const port = config.expressPort || 6375;
 app.listen(port, "0.0.0.0", () => {
-  console.log(`[WEB] Lavalink Status web server listening on port ${port}`);
+  console.log(`[WEB] Web Server Listening on ${port}`);
 });
 
 module.exports = app;
