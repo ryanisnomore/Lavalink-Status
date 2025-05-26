@@ -1,12 +1,14 @@
 {
   "name": "lavalink-status",
-  "version": "2.2",
+  "version": "2.4",
   "description": "Lavalink status dashboard supporting both Lavalink v3 and v4",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js"
   },
   "dependencies": {
+    "badge-maker": "^4.1.0",
+    "canvas": "^3.1.0",
     "colors": "^1.4.0",
     "cors": "^2.8.5",
     "discord.js": "^14.11.0",
