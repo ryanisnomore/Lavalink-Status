@@ -1,53 +1,60 @@
-const express = require("express");
+const express = require('express');
 const router = express.Router();
-const config = require("../../config");
+const Node = require('../../wrapper/Node');
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
-let lavalinkInfo = [];
+const nodesConfig = require('../../config').nodes || [];
+if (!global.lavalinkNodesMap) {
+  global.lavalinkNodesMap = new Map();
+  nodesConfig.forEach(nodeOptions => {
+    const node = new Node(nodeOptions);
+    node.storeNode(global.lavalinkNodesMap);
+    node.connect();
+  });
+}
 
-router.use(express.json());
+async function fetchNodeInfo(node) {
+  if (!node.host || !node.port || !node.password) return null;
 
-router.get("/info", async (req, res) => {
+  const baseUrl = `http${node.secure ? 's' : ''}://${node.host}:${node.port}`;
+  const endpoints = node.version === 3 ? ['/v3/info', '/info'] : ['/v4/info', '/info', '/version'];
+
+  for (const endpoint of endpoints) {
+    try {
+      const res = await fetch(`${baseUrl}${endpoint}`, {
+        headers: { Authorization: node.password },
+        timeout: 2000
+      });
+      if (res.ok) return await res.json();
+    } catch {
+      continue;
+    }
+  }
+  return null;
+}
+
+function formatInfo(node, info) {
+  return {
+    node: node.identifier,
+    version: info?.version || null,
+    lavaplayer: info?.lavaplayer || null,
+    plugins: Array.isArray(info?.plugins) ? info.plugins : [],
+    sourceManagers: Array.isArray(info?.sourceManagers) ? info.sourceManagers : [],
+    filters: Array.isArray(info?.filters) ? info.filters : []
+  };
+}
+
+router.get('/', async (req, res) => {
   try {
-    lavalinkInfo = await Promise.all(
-      config.nodes.map(async (node) => {
-        try {
-          const http = node.secure ? "https" : "http";
-          const apiVersion = node.version === 3 ? "v3" : "v4";
-          const response = await fetch(
-            `${http}://${node.host}:${node.port}/${apiVersion}/info`,
-            {
-              headers: { Authorization: node.password }
-            }
-          );
-          if (!response.ok) throw new Error(`Error fetching info from ${node.host}:${node.port}`);
-          let data = await response.json();
-          data = normalizeInfo(data, node.version);
-          return { node: node.identifier, version: node.version, ...data };
-        } catch {
-          return {
-            node: node.identifier,
-            message: "Failed to fetch info"
-          };
-        }
-      })
-    );
-    res.json(lavalinkInfo);
-  } catch (error) {
-    console.error("Error fetching node info:", error);
-    res.status(500).json({ message: "Internal server error" });
+    const nodes = Array.from(global.lavalinkNodesMap.values());
+    const infos = await Promise.all(nodes.map(async node => {
+      const info = await fetchNodeInfo(node);
+      return formatInfo(node, info);
+    }));
+    res.json(infos);
+  } catch {
+    res.status(500).json({ error: 'Failed to get node info' });
   }
 });
-
-function normalizeInfo(data, version) {
-  if (version === 3) {
-    return {
-      version: data.version || {},
-      plugins: data.plugins || [],
-      lavaplayer: data.lavaplayer || "",
-      sourceManagers: data.sourceManagers || [],
-    };
-  }
-  return data;
-}
 
 module.exports = router;
