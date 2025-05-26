@@ -2,8 +2,14 @@
 
 Lavalink-Status is a comprehensive monitoring and dashboard tool for Lavalink music nodes, providing real-time status, metrics, and visualizations for your Lavalink infrastructure. It is designed to help Discord bot developers and server administrators monitor the health and performance of multiple Lavalink nodes with ease.
 
-![USA Status](http://node.funkybot.dpdns.org:5012//api/v1/badge/status/0?label=USA+Node)
-![EU Uptime](http://node.funkybot.dpdns.org:5012//api/v1/badge/uptime/1?label=EU+Node)
+
+# My Lavalink Nodes
+
+| Metric       | Badge |
+|--------------|-------|
+| Node 1 Status | ![Status](http://node.funkybot.dpdns.org:5012/api/v1/badge/status/0) |
+| Node 1 Uptime | ![Uptime](http://node.funkybot.dpdns.org:5012/api/v1/badge/uptime/0) |
+| Node 1 Players | ![Players](http://node.funkybot.dpdns.org:5012/api/v1/badge/players/0) |
 
 ## Features
 
