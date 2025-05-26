@@ -49,16 +49,10 @@ Lavalink-Status is a comprehensive monitoring and dashboard tool for Lavalink mu
 5. **Access the dashboard:**
    - Open your browser to `http://localhost:PORT` (default port can be set in the config).
 
-## API Endpoints
-
-- `GET /stats` — Returns JSON array with stats for all configured nodes.
-- `GET /api/v1/badge/status/:nodeIndex` — SVG badge for node online/offline status.
-- `GET /api/v1/badge/uptime/:nodeIndex` — SVG badge for node uptime.
-- `GET /api/v1/badge/players/:nodeIndex` — SVG badge for player counts.
 
 ## Dashboard Preview
 
-![Live Check](https://lava.funkybot.dpdns.org)
+![Live Demo](https://lava.funkybot.dpdns.org)
 
 ## Technologies Used
 
