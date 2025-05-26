@@ -268,7 +268,7 @@
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="flex items-center space-x-2 mb-4 md:mb-0">
                     <i class="fas fa-code text-purple-500"></i>
-                    <p>Crafted <span class="text-purple-500">♥</span> by <a href="https://github.com/ghryanx7" target="_blank" class="text-purple-400 hover:text-purple-300 transition-colors">RY4N</a></p>
+                    <p>Crafted <span class="text-purple-500">♥</span> by <a href="https://github.com/ghryanx7" target="_blank" class="text-purple-400 hover:text-purple-300 transition-colors">RY4N</a[...]
                 </div>
                 <div class="flex space-x-4">
                     <p class="text-sm text-gray-400">Version: <span class="text-purple-300">2.4</span></p>
@@ -312,11 +312,13 @@
                 const hours = Math.floor((seconds % 86400) / 3600);
                 const minutes = Math.floor((seconds % 3600) / 60);
                 const secs = seconds % 60;
-                
-                if (days > 0) return `${days}d ${hours}h ${minutes}m`;
-                if (hours > 0) return `${hours}h ${minutes}m ${secs}s`;
-                if (minutes > 0) return `${minutes}m ${secs}s`;
-                return `${secs}s`;
+
+                let out = '';
+                if (days > 0) out += `${days}d `;
+                if (hours > 0 || days > 0) out += `${hours}h `;
+                if (minutes > 0 || hours > 0 || days > 0) out += `${minutes}m `;
+                out += `${secs}s`;
+                return out.trim();
             }
 
             function updateLastUpdated() {
@@ -338,7 +340,7 @@
                 }, 1000);
             }
 
-            function copyToClipboard(text) {
+            function copyToClipboard(text, event) {
                 navigator.clipboard.writeText(text).then(() => {
                     const tooltip = document.createElement('div');
                     tooltip.textContent = 'Copied!';
@@ -349,8 +351,8 @@
                         padding: 4px 8px;
                         border-radius: 4px;
                         z-index: 9999;
-                        top: ${event.clientY - 30}px;
-                        left: ${event.clientX}px;
+                        top: ${event ? (event.clientY - 30) : 100}px;
+                        left: ${event ? (event.clientX) : 100}px;
                         font-size: 12px;
                     `;
                     document.body.appendChild(tooltip);
@@ -362,7 +364,7 @@
                 if (!version) return 'Unknown';
                 if (typeof version === 'string') return version;
                 if (typeof version === 'object') {
-                    return version.semver || version.major + '.' + version.minor + '.' + version.patch || 'Unknown';
+                    return version.semver || (version.major && version.minor && version.patch ? version.major + '.' + version.minor + '.' + version.patch : 'Unknown');
                 }
                 return String(version);
             }
@@ -376,110 +378,54 @@
 
             async function showModal(nodeName, nodeInfo, nodeStats) {
                 modalTitle.textContent = `${nodeName} - Detailed Information`;
-                
-                const version = getVersionString(nodeInfo.version);
-                const lavaplayerVersion = nodeInfo.lavaplayer || 'Unknown';
-                const buildNumber = nodeInfo.buildNumber || 'Unknown';
-                const buildTime = nodeInfo.buildTime ? new Date(nodeInfo.buildTime).toLocaleString() : 'Unknown';
-                const gitCommit = nodeInfo.git?.commit ? nodeInfo.git.commit.substring(0, 7) : 'Unknown';
-                const gitBranch = nodeInfo.git?.branch || 'Unknown';
+
+                const version = getVersionString(nodeStats.version || nodeInfo.version);
+                const lavaplayerVersion = nodeStats.lavaplayer || nodeInfo.lavaplayer || 'Unknown';
+                const buildNumber = nodeStats.buildNumber || nodeInfo.buildNumber || 'Unknown';
+                const buildTime = nodeStats.buildTime || nodeInfo.buildTime ? (nodeStats.buildTime || nodeInfo.buildTime) : 'Unknown';
+                const jvm = nodeStats.jvm || nodeInfo.jvm || 'Unknown';
+                const gitCommit = (nodeStats.git && nodeStats.git.commit) || (nodeInfo.git && nodeInfo.git.commit) ? ((nodeStats.git && nodeStats.git.commit) || (nodeInfo.git && nodeInfo.git.commit)).substring(0, 7) : 'Unknown';
+                const gitBranch = (nodeStats.git && nodeStats.git.branch) || (nodeInfo.git && nodeInfo.git.branch) || 'Unknown';
 
                 const memoryUsed = formatBytes(nodeStats.memoryUsed || 0);
                 const memoryReservable = formatBytes(nodeStats.memoryReservable || 0);
                 const memoryAllocated = formatBytes(nodeStats.memoryAllocated || 0);
                 const memoryFree = formatBytes(nodeStats.memoryFree || 0);
-                const memoryPercentage = nodeStats.memoryReservable > 0 
-                    ? Math.round((nodeStats.memoryUsed / nodeStats.memoryReservable) * 100) 
+                const memoryPercentage = nodeStats.memoryReservable > 0
+                    ? Math.round((nodeStats.memoryUsed / nodeStats.memoryReservable) * 100)
                     : 0;
 
                 const connectionUrl = `http${nodeStats.secure ? 's' : ''}://${nodeStats.host}:${nodeStats.port}`;
-                let detailsHTML = `
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                        <div class="card p-4">
-                            <h4 class="font-bold text-purple-400 mb-2">Basic Info</h4>
-                            <p><strong>Status:</strong> <span class="${nodeStats.online ? 'text-green-400' : 'text-red-400'}">${nodeStats.online ? 'Online' : 'Offline'}</span></p>
-                            <p><strong>Players:</strong> ${nodeStats.activePlayers || 0}/${nodeStats.players || 0}</p>
-                            <p><strong>Uptime:</strong> ${formatUptime(nodeStats.uptime)}</p>
-                        </div>
-                        <div class="card p-4">
-                            <h4 class="font-bold text-purple-400 mb-2">System Info</h4>
-                            <p><strong>CPU Cores:</strong> ${nodeStats.cores || 0}</p>
-                            <p><strong>Memory:</strong> ${memoryUsed} / ${memoryReservable}</p>
-                            <p><strong>Load:</strong> ${nodeStats.systemLoad || 0}% (System), ${nodeStats.lavalinkLoad || 0}% (Lavalink)</p>
-                        </div>
-                    </div>
-                    <div class="card p-4 mb-4">
-                        <h4 class="font-bold text-purple-400 mb-2">Version Information</h4>
-                        <p><strong>Lavalink:</strong> ${version}</p>
-                        <p><strong>Lavaplayer:</strong> ${nodeInfo.lavaplayer || 'Unknown'}</p>
-                    </div>
-                `;
-                
-                if (nodeInfo.plugins?.length > 0) {
-                    detailsHTML += `
-                        <div class="card p-4 mb-4">
-                            <h4 class="font-bold text-purple-400 mb-2">Installed Plugins</h4>
-                            <div class="code-block">
-                                ${nodeInfo.plugins.map(p => `• ${p.name || p}${p.version ? ` v${p.version}` : ''}`).join('\n')}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                if (nodeInfo.sourceManagers?.length > 0) {
-                    detailsHTML += `
-                        <div class="card p-4 mb-4">
-                            <h4 class="font-bold text-purple-400 mb-2">Supported Sources</h4>
-                            <div class="flex flex-wrap gap-2">
-                                ${nodeInfo.sourceManagers.map(source => 
-                                    `<span class="px-3 py-1 rounded-full bg-gray-800 text-sm">${source}</span>`
-                                ).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-                if (nodeInfo.filters?.length > 0) {
-                    detailsHTML += `
-                        <div class="card p-4">
-                            <h4 class="font-bold text-purple-400 mb-2">Available Filters</h4>
-                            <div class="flex flex-wrap gap-2">
-                                ${nodeInfo.filters.map(filter => 
-                                    `<span class="px-3 py-1 rounded-full bg-purple-900 text-purple-200 text-sm">${filter}</span>`
-                                ).join('')}
-                            </div>
-                        </div>
-                    `;
-                }
-                
-
                 let detailsHTML = `
                     <div class="connection-details">
                         <h4 class="font-bold text-purple-400 mb-3"><i class="fas fa-plug mr-2"></i>Connection Details</h4>
                         <div class="connection-row">
                             <span class="connection-label">Host:</span>
                             <span class="connection-value">${nodeStats.host || 'N/A'}</span>
-                            <button class="copy-btn" onclick="copyToClipboard('${nodeStats.host}')" title="Copy host">
+                            <button class="copy-btn" title="Copy host" onclick="window.copyToClipboard && window.copyToClipboard('${nodeStats.host}', event)">
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
                         <div class="connection-row">
                             <span class="connection-label">Port:</span>
                             <span class="connection-value">${nodeStats.port || 'N/A'}</span>
-                            <button class="copy-btn" onclick="copyToClipboard('${nodeStats.port}')" title="Copy port">
+                            <button class="copy-btn" title="Copy port" onclick="window.copyToClipboard && window.copyToClipboard('${nodeStats.port}', event)">
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
                         <div class="connection-row">
                             <span class="connection-label">Full URL:</span>
                             <span class="connection-value">${connectionUrl}</span>
-                            <button class="copy-btn" onclick="copyToClipboard('${connectionUrl}')" title="Copy URL">
+                            <button class="copy-btn" title="Copy URL" onclick="window.copyToClipboard && window.copyToClipboard('${connectionUrl}', event)">
                                 <i class="fas fa-copy"></i>
                             </button>
                         </div>
                         <div class="connection-row">
                             <span class="connection-label">Password:</span>
                             <span class="connection-value">${nodeStats.password ? '••••••••' : 'None'}</span>
+                            <button class="copy-btn" title="Copy Password" onclick="window.copyToClipboard && window.copyToClipboard('${nodeStats.password}', event)">
+                                <i class="fas fa-copy"></i>
+                            </button>
                         </div>
                         <div class="connection-row">
                             <span class="connection-label">Secure:</span>
@@ -582,10 +528,23 @@
                                 <div class="stat-item">
                                     <span>Lavalink Version</span>
                                     <span class="badge badge-purple">${version}</span>
+                                    <button class="copy-btn" title="Copy Version" onclick="window.copyToClipboard && window.copyToClipboard('${version}', event)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
                                 </div>
                                 <div class="stat-item">
                                     <span>Lavaplayer Version</span>
                                     <span class="badge badge-info">${lavaplayerVersion}</span>
+                                    <button class="copy-btn" title="Copy Lavaplayer" onclick="window.copyToClipboard && window.copyToClipboard('${lavaplayerVersion}', event)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                                <div class="stat-item">
+                                    <span>JVM</span>
+                                    <span class="badge badge-info">${jvm}</span>
+                                    <button class="copy-btn" title="Copy JVM" onclick="window.copyToClipboard && window.copyToClipboard('${jvm}', event)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
                                 </div>
                             </div>
                             <div>
@@ -596,46 +555,45 @@
                                 <div class="stat-item">
                                     <span>Build Time</span>
                                     <span>${buildTime}</span>
+                                    <button class="copy-btn" title="Copy Build Time" onclick="window.copyToClipboard && window.copyToClipboard('${buildTime}', event)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
                                 </div>
-                            </div>
-                        </div>
-                        ${nodeInfo.git ? `
-                        <div class="mt-3 p-3 bg-gray-900 rounded">
-                            <div class="flex items-center space-x-4">
-                                <div>
-                                    <span class="text-sm text-gray-400">Git Commit:</span>
+                                <div class="stat-item">
+                                    <span>Git Commit</span>
                                     <span class="font-mono text-purple-300">${gitCommit}</span>
+                                    <button class="copy-btn" title="Copy Commit" onclick="window.copyToClipboard && window.copyToClipboard('${gitCommit}', event)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
                                 </div>
-                                <div>
-                                    <span class="text-sm text-gray-400">Branch:</span>
+                                <div class="stat-item">
+                                    <span>Branch</span>
                                     <span class="badge badge-info">${gitBranch}</span>
+                                    <button class="copy-btn" title="Copy Branch" onclick="window.copyToClipboard && window.copyToClipboard('${gitBranch}', event)">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
                                 </div>
                             </div>
                         </div>
-                        ` : ''}
-                        ${nodeInfo.jvm ? `
-                        <div class="mt-3 p-3 bg-gray-900 rounded">
-                            <div class="text-sm">
-                                <span class="text-gray-400">JVM:</span>
-                                <span>${nodeInfo.jvm}</span>
-                            </div>
-                        </div>
-                        ` : ''}
                     </div>
                 `;
-                
-                if (nodeInfo.plugins?.length > 0) {
+
+                if ((nodeStats.plugins && nodeStats.plugins.length > 0) || (nodeInfo.plugins && nodeInfo.plugins.length > 0)) {
+                    const plugins = nodeStats.plugins && nodeStats.plugins.length > 0 ? nodeStats.plugins : nodeInfo.plugins || [];
                     detailsHTML += `
                         <div class="card p-4 mb-4">
-                            <h4 class="font-bold text-purple-400 mb-3"><i class="fas fa-puzzle-piece mr-2"></i>Installed Plugins (${nodeInfo.plugins.length})</h4>
+                            <h4 class="font-bold text-purple-400 mb-3"><i class="fas fa-puzzle-piece mr-2"></i>Installed Plugins (${plugins.length})</h4>
                             <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
-                                ${nodeInfo.plugins.map(plugin => {
+                                ${plugins.map(plugin => {
                                     const name = plugin.name || plugin;
                                     const version = plugin.version || '';
                                     return `
                                         <div class="flex items-center justify-between p-2 bg-gray-900 rounded">
                                             <span class="font-medium">${name}</span>
                                             ${version ? `<span class="badge badge-info">${version}</span>` : ''}
+                                            <button class="copy-btn" title="Copy Plugin" onclick="window.copyToClipboard && window.copyToClipboard('${name}${version ? ' v'+version : ''}', event)">
+                                                <i class="fas fa-copy"></i>
+                                            </button>
                                         </div>
                                     `;
                                 }).join('')}
@@ -643,27 +601,37 @@
                         </div>
                     `;
                 }
-                
-                if (nodeInfo.sourceManagers?.length > 0) {
+
+                if ((nodeStats.sourceManagers && nodeStats.sourceManagers.length > 0) || (nodeInfo.sourceManagers && nodeInfo.sourceManagers.length > 0)) {
+                    const sources = nodeStats.sourceManagers && nodeStats.sourceManagers.length > 0 ? nodeStats.sourceManagers : nodeInfo.sourceManagers || [];
                     detailsHTML += `
                         <div class="card p-4 mb-4">
-                            <h4 class="font-bold text-purple-400 mb-3"><i class="fas fa-music mr-2"></i>Supported Sources (${nodeInfo.sourceManagers.length})</h4>
+                            <h4 class="font-bold text-purple-400 mb-3"><i class="fas fa-music mr-2"></i>Supported Sources (${sources.length})</h4>
                             <div class="flex flex-wrap gap-2">
-                                ${nodeInfo.sourceManagers.map(source => 
-                                    `<span class="badge badge-success">${source}</span>`
+                                ${sources.map(source =>
+                                    `<span class="badge badge-success">${source}
+                                        <button class="copy-btn ml-2" title="Copy Source" onclick="window.copyToClipboard && window.copyToClipboard('${source}', event)">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </span>`
                                 ).join('')}
                             </div>
                         </div>
                     `;
                 }
-                
-                if (nodeInfo.filters?.length > 0) {
+
+                if ((nodeStats.filters && nodeStats.filters.length > 0) || (nodeInfo.filters && nodeInfo.filters.length > 0)) {
+                    const filters = nodeStats.filters && nodeStats.filters.length > 0 ? nodeStats.filters : nodeInfo.filters || [];
                     detailsHTML += `
                         <div class="card p-4 mb-4">
-                            <h4 class="font-bold text-purple-400 mb-3"><i class="fas fa-sliders-h mr-2"></i>Available Filters (${nodeInfo.filters.length})</h4>
+                            <h4 class="font-bold text-purple-400 mb-3"><i class="fas fa-sliders-h mr-2"></i>Available Filters (${filters.length})</h4>
                             <div class="flex flex-wrap gap-2">
-                                ${nodeInfo.filters.map(filter => 
-                                    `<span class="badge badge-purple">${filter}</span>`
+                                ${filters.map(filter =>
+                                    `<span class="badge badge-purple">${filter}
+                                        <button class="copy-btn ml-2" title="Copy Filter" onclick="window.copyToClipboard && window.copyToClipboard('${filter}', event)">
+                                            <i class="fas fa-copy"></i>
+                                        </button>
+                                    </span>`
                                 ).join('')}
                             </div>
                         </div>
@@ -691,7 +659,7 @@
                         </div>
                     `;
                 }
-                
+
                 modalDetails.innerHTML = detailsHTML;
                 modal.classList.add('active');
             }
@@ -729,19 +697,19 @@
                     errorDiv.classList.remove('hidden');
                     return;
                 }
-                
+
                 loadingDiv.classList.add('hidden');
                 errorDiv.classList.add('hidden');
                 statsDiv.innerHTML = '';
-                
+
                 nodesInfo = await fetchNodesInfo();
-                
+
                 stats.forEach((stat, index) => {
-                    const nodeInfo = nodesInfo[index] || {};
+                    const nodeInfo = nodesInfo.find(n => n.node === stat.node) || {};
                     const memoryUsed = formatBytes(stat.memoryUsed || 0);
                     const memoryReservable = formatBytes(stat.memoryReservable || 0);
-                    const memoryPercentage = stat.memoryReservable > 0 
-                        ? Math.round((stat.memoryUsed / stat.memoryReservable) * 100) 
+                    const memoryPercentage = stat.memoryReservable > 0
+                        ? Math.round((stat.memoryUsed / stat.memoryReservable) * 100)
                         : 0;
 
                     const connectionUrl = `http${stat.secure ? 's' : ''}://${stat.host}:${stat.port}`;
@@ -771,7 +739,7 @@
                                 <p class="text-xs text-gray-400">Active Players</p>
                             </div>
                         </div>
-                        
+
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div class="text-center p-2 bg-gray-900 rounded">
                                 <p class="text-sm text-gray-400">Total Players</p>
@@ -827,11 +795,11 @@
                             </div>
                         </div>
                     `;
-                    
+
                     statElement.addEventListener('click', () => {
                         showModal(stat.node, nodeInfo, stat);
                     });
-                    
+
                     statsDiv.appendChild(statElement);
                 });
             }
@@ -840,13 +808,13 @@
                 try {
                     loadingDiv.classList.remove('hidden');
                     errorDiv.classList.add('hidden');
-                    
+
                     const response = await fetch('/stats');
                     if (!response.ok) throw new Error('Network response was not ok');
-                    
+
                     const stats = await response.json();
                     if (!Array.isArray(stats)) throw new Error('Invalid response format');
-                    
+
                     await renderStats(stats);
                     updateLastUpdated();
                     updateNextRefreshTimer();
