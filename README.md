@@ -5,7 +5,46 @@ Lavalink-Status is a comprehensive monitoring and dashboard tool for Lavalink mu
 
 # My Lavalink Nodes
 
-![Players](https://lava.funkybot.dpdns.org/api/v1/badge/players/0)![Status](https://lava.funkybot.dpdns.org/api/v1/badge/status/0)![Uptime](https://lava.funkybot.dpdns.org/api/v1/badge/uptime/0)![Load](https://lava.funkybot.dpdns.org/api/v1/badge/load/0)![Bandwidth](https://lava.funkybot.dpdns.org/api/v1/badge/bandwidth/0)
+### Lavalink Status Badges for `us2.sanode.xyz:5022`
+
+**Players**  
+Custom (feather icon):  
+![Players](https://lava.funkybot.dpdns.org/api/v1/badge/players?host=us2.sanode.xyz&port=5022&icon=users)  
+Shields.io:  
+![Players](https://lava.funkybot.dpdns.org/api/v1/badge/players?host=us2.sanode.xyz&port=5022&style=shields)
+
+---
+
+**Status**  
+Custom (feather icon):  
+![Status](https://lava.funkybot.dpdns.org/api/v1/badge/status?host=us2.sanode.xyz&port=5022&icon=activity)  
+Shields.io:  
+![Status](https://lava.funkybot.dpdns.org/api/v1/badge/status?host=us2.sanode.xyz&port=5022&style=shields)
+
+---
+
+**Uptime**  
+Custom (feather icon):  
+![Uptime](https://lava.funkybot.dpdns.org/api/v1/badge/uptime?host=us2.sanode.xyz&port=5022&icon=clock)  
+Shields.io:  
+![Uptime](https://lava.funkybot.dpdns.org/api/v1/badge/uptime?host=us2.sanode.xyz&port=5022&style=shields)
+
+---
+
+**Load**  
+Custom (feather icon):  
+![Load](https://lava.funkybot.dpdns.org/api/v1/badge/load?host=us2.sanode.xyz&port=5022&icon=cpu)  
+Shields.io:  
+![Load](https://lava.funkybot.dpdns.org/api/v1/badge/load?host=us2.sanode.xyz&port=5022&style=shields)
+
+---
+
+**Bandwidth**  
+Custom (feather icon):  
+![Bandwidth](https://lava.funkybot.dpdns.org/api/v1/badge/bandwidth?host=us2.sanode.xyz&port=5022&icon=activity)  
+Shields.io:  
+![Bandwidth](https://lava.funkybot.dpdns.org/api/v1/badge/bandwidth?host=us2.sanode.xyz&port=5022&style=shields)
+
 
 
 ## Features
