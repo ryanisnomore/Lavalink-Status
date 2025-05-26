@@ -1,5 +1,6 @@
 const WebSocket = require("ws");
 const colors = require("colors");
+const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
 
 class Node {
   constructor(options) {
@@ -14,6 +15,7 @@ class Node {
     this.reconnectAttempted = 0;
     this.connected = false;
     this.stats = {};
+    this.info = {};
     this.ws = null;
   }
 
@@ -38,6 +40,7 @@ class Node {
       console.log(colors.green(`[NODE] ${this.identifier} | Lavalink node is connected.`));
       this.reconnectAttempted = 0;
       this.connected = true;
+      this.fetchInfo();
     });
 
     this.ws.on("message", (message) => {
@@ -71,6 +74,7 @@ class Node {
       this.ws = null;
       this.connected = false;
       this.stats = {};
+      this.info = {};
       console.log(colors.red(`[NODE] ${this.identifier} | Disconnected.`));
     }
   }
@@ -120,6 +124,37 @@ class Node {
       memory: { free: 0, used: 0, allocated: 0, reservable: 0 },
       cpu: { cores: 0, systemLoad: 0, lavalinkLoad: 0 },
       frameStats: { sent: 0, nulled: 0, deficit: 0 }
+    };
+  }
+
+  async fetchInfo() {
+    const baseUrl = `http${this.secure ? 's' : ''}://${this.host}:${this.port}`;
+    const endpoints = this.version === 3
+      ? ['/v3/info', '/info']
+      : ['/v4/info', '/info', '/version'];
+    for (const endpoint of endpoints) {
+      try {
+        const res = await fetch(`${baseUrl}${endpoint}`, {
+          headers: { Authorization: this.password },
+          timeout: 2000
+        });
+        if (res.ok) {
+          this.info = await res.json();
+          return;
+        }
+      } catch {
+        continue;
+      }
+    }
+    this.info = {};
+  }
+
+  getConnectionDetails() {
+    return {
+      host: this.host,
+      port: this.port,
+      password: this.password,
+      secure: !!this.secure
     };
   }
 }
