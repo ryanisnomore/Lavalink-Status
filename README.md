@@ -2,7 +2,7 @@
 
 Lavalink-Status is a comprehensive monitoring and dashboard tool for Lavalink music nodes, providing real-time status, metrics, and visualizations for your Lavalink infrastructure. It is designed to help Discord bot developers and server administrators monitor the health and performance of multiple Lavalink nodes with ease.
 
-![Status](https://img.shields.io/endpoint?url=http://synthixnodes.ix.tc:6375/api/v1/badge/status-json/Main ARINO)
+![Status](https://img.shields.io/endpoint?url=http://synthixnodes.ix.tc:6375/api/v1/badge/status-json/0&label=USA+Node)
 
 ## Features
 
