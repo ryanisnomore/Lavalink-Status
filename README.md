@@ -5,9 +5,9 @@ Lavalink-Status is a comprehensive monitoring and dashboard tool for Lavalink mu
 
 # My Lavalink Nodes
 
-![Players](http://node.funkybot.dpdns.org:5012/dnode2.astrast.host:9869/badge/Players/0)
-![Status](http://node.funkybot.dpdns.org:5012/dnode2.astrast.host:9869/badge/Status/0)
-![Uptime](http://node.funkybot.dpdns.org:5012/dnode2.astrast.host:9869/badge/Uptime/0)
+![Players](https://lava.funkybot.dpdns.org/api/v1/badge/players/0)![Status](https://lava.funkybot.dpdns.org/api/v1/badge/status/0)![Uptime](https://lava.funkybot.dpdns.org/api/v1/badge/uptime/0)![Load](https://lava.funkybot.dpdns.org/api/v1/badge/load/0)![Bandwidth](https://lava.funkybot.dpdns.org/api/v1/badge/bandwidth/0)
+
+
 ## Features
 
 - **Real-time Lavalink Node Monitoring:** Automatically connects to multiple Lavalink nodes and gathers stats such as uptime, CPU and memory usage, player counts, and connection status.
