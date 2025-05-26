@@ -63,7 +63,7 @@ Lavalink-Status is a comprehensive monitoring and dashboard tool for Lavalink mu
 
 ## Dashboard Preview
 
-![Dashboard Screenshot](https://raw.githubusercontent.com/ryanisnomore/Lavalink-Status/main/docs/dashboard-preview.png)
+![Live Check](https://lava.funkybot.dpdns.org)
 
 ## Technologies Used
 
