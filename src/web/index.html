@@ -268,7 +268,7 @@
             <div class="flex flex-col md:flex-row justify-between items-center">
                 <div class="flex items-center space-x-2 mb-4 md:mb-0">
                     <i class="fas fa-code text-purple-500"></i>
-                    <p>Crafted <span class="text-purple-500">♥</span> by <a href="https://github.com/ghryanx7" target="_blank" class="text-purple-400 hover:text-purple-300 transition-colors">RY4N</a[...]
+                    <p>Crafted <span class="text-purple-500">♥</span> by <a href="https://github.com/ghryanx7" target="_blank" class="text-purple-400 hover:text-purple-300 transition-colors">RY4N</a></p>
                 </div>
                 <div class="flex space-x-4">
                     <p class="text-sm text-gray-400">Version: <span class="text-purple-300">2.4</span></p>
@@ -381,7 +381,6 @@
 
                 const version = getVersionString(nodeStats.version || nodeInfo.version);
                 const lavaplayerVersion = nodeStats.lavaplayer || nodeInfo.lavaplayer || 'Unknown';
-                const buildNumber = nodeStats.buildNumber || nodeInfo.buildNumber || 'Unknown';
                 const buildTime = nodeStats.buildTime || nodeInfo.buildTime ? (nodeStats.buildTime || nodeInfo.buildTime) : 'Unknown';
                 const jvm = nodeStats.jvm || nodeInfo.jvm || 'Unknown';
                 const gitCommit = (nodeStats.git && nodeStats.git.commit) || (nodeInfo.git && nodeInfo.git.commit) ? ((nodeStats.git && nodeStats.git.commit) || (nodeInfo.git && nodeInfo.git.commit)).substring(0, 7) : 'Unknown';
@@ -414,13 +413,6 @@
                             </button>
                         </div>
                         <div class="connection-row">
-                            <span class="connection-label">Full URL:</span>
-                            <span class="connection-value">${connectionUrl}</span>
-                            <button class="copy-btn" title="Copy URL" onclick="window.copyToClipboard && window.copyToClipboard('${connectionUrl}', event)">
-                                <i class="fas fa-copy"></i>
-                            </button>
-                        </div>
-                        <div class="connection-row">
                             <span class="connection-label">Password:</span>
                             <span class="connection-value">${nodeStats.password ? '••••••••' : 'None'}</span>
                             <button class="copy-btn" title="Copy Password" onclick="window.copyToClipboard && window.copyToClipboard('${nodeStats.password}', event)">
@@ -430,7 +422,7 @@
                         <div class="connection-row">
                             <span class="connection-label">Secure:</span>
                             <span class="connection-value badge ${nodeStats.secure ? 'badge-success' : 'badge-warning'}">
-                                ${nodeStats.secure ? 'HTTPS/WSS' : 'HTTP/WS'}
+                                ${nodeStats.secure ? 'TRUE/HTTPS' : 'FALSE/HTTP'}
                             </span>
                         </div>
                         ${nodeStats.region ? `
@@ -548,10 +540,6 @@
                                 </div>
                             </div>
                             <div>
-                                <div class="stat-item">
-                                    <span>Build Number</span>
-                                    <span>#${buildNumber}</span>
-                                </div>
                                 <div class="stat-item">
                                     <span>Build Time</span>
                                     <span>${buildTime}</span>
@@ -725,7 +713,7 @@
                                     <i class="fas ${statusIcon} ${statusColor} mr-2"></i>
                                     ${stat.node}
                                 </h3>
-                                <p class="text-sm text-gray-400 font-mono">${connectionUrl}</p>
+                                <p class="text-sm text-gray-400 font-mono"></p>
                                 ${stat.region ? `<span class="badge badge-info mt-1">${stat.region}</span>` : ''}
                             </div>
                             <div class="text-right">
@@ -736,13 +724,13 @@
                                     </span>
                                 </div>
                                 <p class="text-2xl font-bold ${stat.online ? 'text-purple-400' : 'text-gray-500'}">${stat.activePlayers || 0}</p>
-                                <p class="text-xs text-gray-400">Active Players</p>
+                                <p class="text-xs text-gray-400">Playing</p>
                             </div>
                         </div>
 
                         <div class="grid grid-cols-2 gap-4 mb-4">
                             <div class="text-center p-2 bg-gray-900 rounded">
-                                <p class="text-sm text-gray-400">Total Players</p>
+                                <p class="text-sm text-gray-400">Players</p>
                                 <p class="text-lg font-bold">${stat.players || 0}</p>
                             </div>
                             <div class="text-center p-2 bg-gray-900 rounded">
