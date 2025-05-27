@@ -8,7 +8,6 @@ Lavalink-Status is a comprehensive monitoring and dashboard tool for Lavalink mu
 - **RESTful Web API:** Exposes endpoints for stats and info ([see API docs below](#api-endpoints)).
 - **Web Dashboard:** Modern web interface with auto-refreshing stats, system load, memory, player info, and error handling for disconnected nodes.
 - **Discord Integration:** Posts node status embeds to a Discord channel, updating periodically with node health and stats.
-- **Status & Uptime Badges:** REST API endpoints to generate SVG badges for node status, uptime, and player activity.
 - **Extensible & Flexible:** Supports any number of nodes; compatible with both Lavalink v3 and v4 servers.
 - **Dark AMOLED Theme:** Attractive web dashboard for optimal readability.
 
@@ -117,7 +116,7 @@ Lavalink-Status is a comprehensive monitoring and dashboard tool for Lavalink mu
 
 ## Dashboard Preview
 
-![Live Demo](https://lava.funkybot.dpdns.org)
+![Live Demo]([https://lava.funkybot.dpdns.org](https://lava.funkybot.dpdns.org/))
 
 ## Technologies Used
 
