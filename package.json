@@ -1,6 +1,6 @@
 {
   "name": "lavalink-status",
-  "version": "2.4.1",
+  "version": "2.4",
   "description": "Lavalink-Status: Real-time monitoring, REST API, and dashboard for Lavalink music nodes (v3/v4) with Discord integration.",
   "author": "RY4N <https://github.com/ryanisnomore>",
   "license": "MIT",
